@@ -2,7 +2,7 @@
 layout: post
 title:  "TensorFlow 到 Caffe2 的 MobileNets 转换器"
 date:   2017-08-24 14:23:19 +0800
-categories: jekyll update
+categories: blogs
 ---
 
 {% include math_jax.html %}
@@ -407,6 +407,7 @@ print results
 | ---------- | --------- | ---------- | -------- |
 | Caffe2     | ---       | ---        | ---         |
 | TensorFlow | 150ms     | 160ms      | 250ms    |
+
 
 
 <br>
