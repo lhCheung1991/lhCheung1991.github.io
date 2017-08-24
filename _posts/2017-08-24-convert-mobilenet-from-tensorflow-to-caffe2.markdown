@@ -10,7 +10,6 @@ Linghan Cheung
 {:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
 {:refdef}
-<br>
 ## 摘要
 ---
 <br>
