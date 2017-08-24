@@ -5,7 +5,7 @@ date:   2017-08-24 14:23:19 +0800
 categories: blogs
 ---
 
-{% include math_jax.html %}
+{%include math_jax.html%}
 
 {:refdef: style="text-align: center;"}
 Linghan Cheung 
