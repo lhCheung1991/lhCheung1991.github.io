@@ -4,15 +4,12 @@ title:  "TensorFlow 到 Caffe2 的 MobileNets 转换器"
 date:   2017-08-24 14:23:19 +0800
 categories: blogs
 ---
-
 {:refdef: style="text-align: center;"}
 Linghan Cheung 
 {:refdef}
 {:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
 {:refdef}
-
-
 <br>
 ## 摘要
 ---
