@@ -273,7 +273,7 @@ op {
 ......
 ```
 
-​&emsp;&emsp;在 `export(INIT_NET, PREDICT_NET, model)` 函数中，我们首先将定义网络结构的 `model.net._net` 进行序列化并写入文件，不过需要注意的是，为了使生成的推断器知道网络最终的输出是什么，我们应该加上网络的输出定义，否则推断器将无法输出最后的预测结果，代码如下所示。我们定义的 MobileNets 的最后一层为网络的输出层，其最后输出名为 softmax 的 tensor 。
+​&emsp;&emsp;在 `export(INIT_NET, PREDICT_NET, model)` 函数中，我们首先将定义网络结构的 `model.net._net` 进行序列化并写入文件，不过需要注意的是，为了使生成的推断器知道网络最终的输出是什么，我们应该加上网络的输出定义，否则推断器将无法输出最后的预测结果，代码如下所示。我们定义的 MobileNets 的最后一层为网络的输出层，其为最后输出名为 softmax 的 tensor 。
 
 ```python
 with open(PREDICT_NET, 'wb') as f:
@@ -281,7 +281,7 @@ with open(PREDICT_NET, 'wb') as f:
         f.write(model.net._net.SerializeToString())
 ```
 
-​&emsp;&emsp;为了构建存储参数的 init_net_serial 文件，我们需要先定义 NetDef 对象 `init_net = caffe2_pb2.NetDef()` 。由于 TensorFlow 默认的 参数数据顺序为 (H, W, INPUT_CHANEL, OUTPUT_CHANEL)，而 Caffe2 默认的 batch 数据顺序为 (OUTPUT_CHANEL, INPUT_CHANEL, H, W)，所以从 TensorFlow 中提取的参数需要先做一下维度转换，如下代码所示：
+​&emsp;&emsp;为了构建存储参数的 init_net_serial 文件，我们需要先定义 NetDef 对象 `init_net = caffe2_pb2.NetDef()` 。由于 TensorFlow 默认的参数数据顺序为 (H, W, INPUT_CHANEL, OUTPUT_CHANEL)，而 Caffe2 默认的参数数据顺序为 (OUTPUT_CHANEL, INPUT_CHANEL, H, W)，所以从 TensorFlow 中提取的参数需要先做一下维度转换，如下代码所示：
 
 ```python
 def convert_hwcincout_to_coutcinhw(tensor_in):
