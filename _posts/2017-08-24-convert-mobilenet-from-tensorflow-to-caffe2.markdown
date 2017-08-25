@@ -86,7 +86,7 @@ $$
 ![]({{site.url}}/assets/2017-08-24-convert-mobilenet-from-tensorflow-to-caffe2/mobilenets.png)
 {:refdef}
 
-​&emsp;&emsp;除了第一层卷积层为标准卷积层外，其他的卷积层均为 Depthwise Separable Convolution，每个卷积层之后都会加上一层 BatchNorm 层和 ReLU 层。我们使用 Caffe2 的 [caffe2/caffe2/python/brew.py](https://github.com/caffe2/caffe2/blob/master/caffe2/python/brew.py) 提供的函数进行搭建。下面代码是 brew.py 提供的常用操作，如 fc 实现全连接层，average_pool 实现平均下采样，spatial_bn 实现 BatchNorm 功能，group_conv_deprecated 可用于实现 Depthwise Convolution。
+​  除了第一层卷积层为标准卷积层外，其他的卷积层均为 Depthwise Separable Convolution，每个卷积层之后都会加上一层 BatchNorm 层和 ReLU 层。我们使用 Caffe2 的 [caffe2/caffe2/python/brew.py](https://github.com/caffe2/caffe2/blob/master/caffe2/python/brew.py) 提供的函数进行搭建。下面代码是 brew.py 提供的常用操作，如 fc 实现全连接层，average_pool 实现平均下采样，spatial_bn 实现 BatchNorm 功能，group_conv 可用于实现 Depthwise Convolution。
 
 ```python
 _registry = {
@@ -109,7 +109,7 @@ _registry = {
     }
 ```
 
-​&emsp;&emsp;下面代码是添加 Depthwise Separable Convolution 的主要操作，有几个需要注意的点：1. depthwise layer 的输入通道数与输出通道数相等；2. group_conv_deprecated 中的 group 参数等于输入通道数；3. pointwise convolution 的 kernel size 为1。
+  下面代码是添加 Depthwise Separable Convolution 的主要操作，有几个需要注意的点：1. depthwise layer 的输入通道数与输出通道数相等；2. group_conv 中的 group 参数等于输入通道数；3. pointwise convolution 的 kernel size 为1。
 
 ```python
 def addDepthwiseConvAndPointWiseConv(self, filter_in, filter_out, isDownSample):
@@ -117,9 +117,10 @@ def addDepthwiseConvAndPointWiseConv(self, filter_in, filter_out, isDownSample):
         _dim_out = int(filter_out * self.width_mult)
         
         # add depthwise layer
-        brew.group_conv_deprecated(self.model, self.previousBlob, 
+        brew.group_conv(self.model,
+                        self.previousBlob, 
                         "depthwise%d" % (self.depthWiseCnt),
-                        dim_in=_dim_in,    # # of input channel is equal to output
+                        dim_in=_dim_in,
                         dim_out=_dim_in,
                         kernel=3,
                         stride=(1 if isDownSample is False else 2),
@@ -127,7 +128,7 @@ def addDepthwiseConvAndPointWiseConv(self, filter_in, filter_out, isDownSample):
                         pad_r = (1 if isDownSample is False else 1), 
                         pad_b = (1 if isDownSample is False else 1), 
                         pad_l = (1 if isDownSample is False else 0),
-                        group=_dim_in,    # # of group is equal to # of input channel
+                        group=_dim_in,
                         no_bias=True
                        )
         # add bn
@@ -292,7 +293,12 @@ def convert_hwcincout_to_coutcinhw(tensor_in):
     pass
     if len(tensor_in.shape) == 1:
         return tensor_in
-    return np.rollaxis(np.rollaxis(tensor_in, 3), 3, start=1)
+    ans_np = np.rollaxis(np.rollaxis(tensor_in, 3), 3, start=1)
+    # when we use group_conv and channel per group is 1, 
+    # we need to reshape tensor to make input channel be 1
+    if ans_np.shape[0] == 1:
+        return np.rollaxis(ans_np, 1)
+    return ans_np
 ```
 
 ​&emsp;&emsp;`type: "SpatialBN"` 的 OperatorDef 对象是 BatchNorm 层，其有 4 个参数，分别是 spatbn_b、spatbn_s、spatbn_rm、spatbn_riv，分别对应 TensorFlow 的 BatchNorm 层的 4  个参数 BatchNorm/beta、BatchNorm/scale、BatchNorm/moving_mean、BatchNorm/moving_variance，需要注意的是，标准的 MobileNets 模型中 BatchNorm 的 Scale 参数为1，所以默认没有 BatchNorm/scale 参数，在进行模型转换时需要给 Caffe2 人工生成 spatbn_s 参数。
@@ -397,10 +403,10 @@ print results
 
 ​&emsp;&emsp;我们使用 Width Mutipler = 0.5，Resolution Mutipler 使输入的图像为 160 x 160，在多个不同的移动设备上进行推断性能的比较，对比结果如下所示：
 
-|            | 三星 NOTE 3 | LG NEXUS 5 | 魅族 PRO 4 |
-| ---------- | --------- | ---------- | -------- |
-| Caffe2     | ---       | ---        | ---         |
-| TensorFlow | 150ms     | 160ms      | 250ms    |
+|            | 三星 NOTE 3 | LG NEXUS 5 | 魅族 PRO 4 | Smartisan Nut |
+| ---------- | --------- | ---------- | -------- | ------------- |
+| Caffe2     | ---       | 70ms       | ---      | 150ms         |
+| TensorFlow | 150ms     | 160ms      | 250ms    |               |
 
 
 
