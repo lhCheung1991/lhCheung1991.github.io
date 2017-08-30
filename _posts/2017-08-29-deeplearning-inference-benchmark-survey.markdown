@@ -48,7 +48,7 @@ lhcheung1991@gmail.com
 
 &emsp;&emsp;NEON 指令支出8、16、32、64位有符号/无符号整型数，支持32位单精度浮点数，使用 `VCVT` 指令可进行数据类型的转换。NEON 指令的寄存器组由32位/64位寄存器组成，在 NEON 指令的眼中，寄存器组可被看成16个128位的4字寄存器，既Q0 - Q15，也可被看成32个64位的双字寄存器，既D0 - D31，如下图所示，这种不同的寄存器组视图不需要通过特定的指令进行切换，而是由 NEON 指令来决定执行时需要的寄存器组视图。
 {:refdef: style="text-align: center;"}
-![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/arm-neon-register.png)
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/arm-neon-register.jpg)
 {:refdef}
 
 &emsp;&emsp;要使用最新的 NEON 指令，需要使用最新的 GNU、RealView 编译工具，这两支编译器均支持 NEON 指令集。要使用 NEON 指令，最直接的方式是使用汇编语言，如下代码分别为使用 GNU assembler(Gas) 和 RVCT（RealView Compilation Tools）汇编调用 NEON 指令的函数，其参数的传递和返回均通过 NEON 寄存器。
