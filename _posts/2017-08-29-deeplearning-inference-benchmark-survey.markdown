@@ -78,12 +78,6 @@ END
 ```c++
 // NEON intrinsics
 // same syntax for GNU & RVCT
-#include <arm_neon.h>
-
-uint32x4_t double_elements(uint32x4_t input)
-{
-    return(vaddq_u32(input, input));
-}
 
 // NEON intrinsics with GCC
 // arm-none-linux-gnueabi-gcc -mfpu=neon intrinsic.c
@@ -93,6 +87,30 @@ uint32x4_t double_elements(uint32x4_t input)
 
 // NEON intrinsics with RVCT
 // armcc --cpu=Cortex-A9 intrinsic.c
+
+#include <arm_neon.h>
+
+uint32x4_t double_elements(uint32x4_t input)
+{
+    return(vaddq_u32(input, input));
+}
+```
+&emsp;&emsp;还有一种使用 NEON 指令的方式，那便是由编译器进行自动向量化。由于不使用 NEON 的汇编指令和 intrinsics，所以这种方法能够保持代码的可移植性。由于 C/C++ 语言并不能显示地描述代码的并行行为，所以工程师需要给编译器一些提示，以便编译器能够使用 NEON 指令，如下所示代码。
+```c++
+// GCC
+// arm-none-linux-gnueabi-gcc -mfpu=neon -ftree-vectorize -ftree-vectorizer-verbose=1 -c vectorized.c
+
+// RVCT
+// armcc --cpu=Cortex-A9 -O3 -Otime --vectorize --fpmode=fast --remarks -c vectorized.c
+
+// 使用 __restrict 保证指针 pa, pb 没有在内存中没有交叠的地方
+void add_ints(int * __restrict pa, int * __restrict pb, unsigned int n, int x)
+{
+    unsigned int i;
+    // n & ~3 使 n 的低2位为0，既 n 为4的倍数。假设此处 int* 是32位整型指针，n 为4，则
+    // 编译器会将下面的循环使用 VADD.I32 Q, Q, Q 进行优化，Q 为128位寄存器
+    for(i = 0; i < (n & ~3); i++) pa[i] = pb[i] + x;
+}
 ```
 
 ACL(ARM-Compute Library)——The Computer Vision and Machine Learning library is a set of functions optimised for both ARM CPUs and GPUs using SIMD technologies. 
