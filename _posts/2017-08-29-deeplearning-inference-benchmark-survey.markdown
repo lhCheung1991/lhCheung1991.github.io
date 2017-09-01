@@ -23,7 +23,7 @@ lhcheung1991@gmail.com
 ## 深度学习推断的主要操作
 ---
 <br>
-&emsp;&emsp;对于大部分的卷积神经网络而言，卷积层是最消耗时间的部分，而全连接层则是参数量最多的部分[2]。
+&emsp;&emsp;对于大部分的卷积神经网络而言，卷积层是最消耗时间的部分，而全连接层则是参数量最多的部分[2]。 如下图所示[10]为 2012 年获得 imagenet 冠军的深度神经网络结构 Alexnet 分别在 GPU 和 CPU 进行推断的性能 benchmark，由图可以看出，在 CPU 上卷积层和全连接层占用了 95% 的计算时间，而在 CPU 上卷积层和全连接层占用了 89% 的时间，如何高效地进行卷积层和全连接层的计算成为提升深度学习推断性能的关键点。
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/alexnet-computation-benchmark.png)
 {:refdef}
