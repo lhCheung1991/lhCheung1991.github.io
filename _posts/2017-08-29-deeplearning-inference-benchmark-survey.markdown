@@ -33,9 +33,8 @@ lhcheung1991@gmail.com
 ## 可用的开源库
 
 ---
-
 <br>
-  *_NEON_*[5]——在现代的软件系统中，当需要在32位微处理器上处理16位数据（如语音）或8位数据（如图片）时，有部分计算单位无法被用到。基于 SIMD（单指令多数据）计算模型可在这种情况下提高计算性能，如本来的一个32位数加法指令，可同时完成4个8位数的加法指令。如下图所示，为 ARMv6 `UADD8 R0, R1, R2` 指令 ，其利用32位通用处理器同时进行4个8位数的加法，这样的操作保证了4倍的执行效率而不需要增加额外的加法计算单元。从 ARMv7 架构开始，SIMD 计算模型便通过一组在特定的64位、128位向量寄存器（不同于通用寄存器）上进行操作的指令得到扩展，这组指令便成为 NEON，NEON 技术已经在 ARM Cortex-A 系列处理器上得到支持。NEON 指令由 ARM/Thumb 指令流进行执行，相比需要额外加速设备的加速方法，NEON 简化了软件的开发、调试和集成。
+  __NEON__[5]——在现代的软件系统中，当需要在32位微处理器上处理16位数据（如语音）或8位数据（如图片）时，有部分计算单位无法被用到。基于 SIMD（单指令多数据）计算模型可在这种情况下提高计算性能，如本来的一个32位数加法指令，可同时完成4个8位数的加法指令。如下图所示，为 ARMv6 `UADD8 R0, R1, R2` 指令 ，其利用32位通用处理器同时进行4个8位数的加法，这样的操作保证了4倍的执行效率而不需要增加额外的加法计算单元。从 ARMv7 架构开始，SIMD 计算模型便通过一组在特定的64位、128位向量寄存器（不同于通用寄存器）上进行操作的指令得到扩展，这组指令便成为 NEON，NEON 技术已经在 ARM Cortex-A 系列处理器上得到支持。NEON 指令由 ARM/Thumb 指令流进行执行，相比需要额外加速设备的加速方法，NEON 简化了软件的开发、调试和集成。
 
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/arm-neon-simd-example.png)
@@ -112,9 +111,169 @@ void add_ints(int * __restrict pa, int * __restrict pb, unsigned int n, int x)
     for(i = 0; i < (n & ~3); i++) pa[i] = pb[i] + x;
 }
 ```
+<br>
+&emsp;&emsp;__ACL(ARM-Compute Library)__[3][4]——专为 ARM CPU & GPU 优化设计的计算机视觉和机器学习库，基于 NEON & OpenCL 支持的 SIMD 技术。作为 ARM 自家的加速库，CPU 端基于 NEON 指令集做了许多高性能的接口，包括许多常用的图像处理函数、矩阵运算函数、神经网络操作函数等，如下图为 ![ComputeLibrary/arm_compute/runtime/NEON/NEFunctions.h](https://github.com/ARM-software/ComputeLibrary/blob/master/arm_compute/runtime/NEON/NEFunctions.h) 文件所提供的函数一览，位操作、直方图均衡化、矩阵乘法、卷积、池化、BN应有尽有，接口粒度有粗有细。
+```c++
+/* Header regrouping all the NEON functions */
+#include "arm_compute/runtime/NEON/functions/NEAbsoluteDifference.h"
+#include "arm_compute/runtime/NEON/functions/NEAccumulate.h"
+#include "arm_compute/runtime/NEON/functions/NEActivationLayer.h"
+#include "arm_compute/runtime/NEON/functions/NEArithmeticAddition.h"
+#include "arm_compute/runtime/NEON/functions/NEArithmeticSubtraction.h"
+#include "arm_compute/runtime/NEON/functions/NEBatchNormalizationLayer.h"
+#include "arm_compute/runtime/NEON/functions/NEBitwiseAnd.h"
+#include "arm_compute/runtime/NEON/functions/NEBitwiseNot.h"
+#include "arm_compute/runtime/NEON/functions/NEBitwiseOr.h"
+#include "arm_compute/runtime/NEON/functions/NEBitwiseXor.h"
+#include "arm_compute/runtime/NEON/functions/NEBox3x3.h"
+#include "arm_compute/runtime/NEON/functions/NECannyEdge.h"
+#include "arm_compute/runtime/NEON/functions/NEChannelCombine.h"
+#include "arm_compute/runtime/NEON/functions/NEChannelExtract.h"
+#include "arm_compute/runtime/NEON/functions/NEColorConvert.h"
+#include "arm_compute/runtime/NEON/functions/NEConvolution.h"
+#include "arm_compute/runtime/NEON/functions/NEConvolutionLayer.h"
+#include "arm_compute/runtime/NEON/functions/NEDepthConcatenate.h"
+#include "arm_compute/runtime/NEON/functions/NEDepthConvert.h"
+#include "arm_compute/runtime/NEON/functions/NEDerivative.h"
+#include "arm_compute/runtime/NEON/functions/NEDilate.h"
+#include "arm_compute/runtime/NEON/functions/NEDirectConvolutionLayer.h"
+#include "arm_compute/runtime/NEON/functions/NEEqualizeHistogram.h"
+#include "arm_compute/runtime/NEON/functions/NEErode.h"
+#include "arm_compute/runtime/NEON/functions/NEFastCorners.h"
+#include "arm_compute/runtime/NEON/functions/NEFillBorder.h"
+#include "arm_compute/runtime/NEON/functions/NEFullyConnectedLayer.h"
+#include "arm_compute/runtime/NEON/functions/NEGEMM.h"
+#include "arm_compute/runtime/NEON/functions/NEGEMMInterleave4x4.h"
+#include "arm_compute/runtime/NEON/functions/NEGEMMLowp.h"
+#include "arm_compute/runtime/NEON/functions/NEGEMMTranspose1xW.h"
+......
+```
+&emsp;&emsp;使用 ARM-Compute Library 进行推断网络的搭建很方便，如下代码构建了一个 conv1: 3x3 -> BatchNorm -> relu 的小网络。在 LG NEXUS 5 平台上，这个网络进行一次推断的时间为8ms，而使用 Caffe2 进行推断的时间为4.8ms。由于 ARM-Compute Library 现在还处于开发完善阶段，很多操作如 MobileNets 中使用的 Depthwise Seperable Convolution（Group Convolution） 还没有得到支持。
+```c++
+#include "arm_compute/runtime/NEON/NEFunctions.h"
+#include "arm_compute/core/Types.h"
+#include "utils/Utils.h"
+#include <time.h>
+#include <iostream>
 
-ACL(ARM-Compute Library)——The Computer Vision and Machine Learning library is a set of functions optimised for both ARM CPUs and GPUs using SIMD technologies. 
+using namespace arm_compute;
+using namespace utils;
 
+void main_mobilenets(int argc, const char **argv)
+{
+    ARM_COMPUTE_UNUSED(argc);
+    ARM_COMPUTE_UNUSED(argv);
+    clock_t start, end;
+    double cpu_time_used;
+    
+    // The src tensor should contain the input image
+    Tensor src;
+    
+    // The weights and biases tensors for MobileNets
+    Tensor conv1_w;
+    Tensor conv1_b;
+    Tensor conv1_bn_b;
+    Tensor conv1_bn_s;
+    Tensor conv1_bn_rm;
+    Tensor conv1_bn_riv;
+    
+    Tensor out_conv1;
+    Tensor out_conv1_bn;
+    Tensor out_conv1_bn_relu;
+    
+    NEConvolutionLayer conv1;
+    NEBatchNormalizationLayer conv1_bn;
+    NEActivationLayer conv1_bn_relu;
+    
+    /* [Initialize tensors] */
+    // Initialize src tensor
+    constexpr unsigned int width_src_image  = 160;
+    constexpr unsigned int height_src_image = 160;
+    constexpr unsigned int ifm_src_img      = 3;
+    const TensorShape src_shape(width_src_image, height_src_image, ifm_src_img);
+    src.allocator()->init(TensorInfo(src_shape, 1, DataType::F32));
+    
+    // Initialize tensors of conv1
+    constexpr unsigned int kernel_x_conv1 = 3;
+    constexpr unsigned int kernel_y_conv1 = 3;
+    constexpr unsigned int ofm_conv1      = 16;
+    const TensorShape weights_shape_conv1(kernel_x_conv1, kernel_y_conv1, src_shape.z(), ofm_conv1);
+    const TensorShape biases_shape_conv1(weights_shape_conv1[3]);
+    const TensorShape out_shape_conv1(src_shape.x() / 2, src_shape.y() / 2, weights_shape_conv1[3]);
+    conv1_w.allocator()->init(TensorInfo(weights_shape_conv1, 1, DataType::F32));
+    conv1_b.allocator()->init(TensorInfo(biases_shape_conv1, 1, DataType::F32));
+    out_conv1.allocator()->init(TensorInfo(out_shape_conv1, 1, DataType::F32));
+    
+    // Initialize tensors of conv1_bn
+    const TensorShape b_shape_conv1_bn(weights_shape_conv1[3]);
+    const TensorShape s_shape_conv1_bn(weights_shape_conv1[3]);
+    const TensorShape rm_shape_conv1_bn(weights_shape_conv1[3]);
+    const TensorShape riv_shape_conv1_bn(weights_shape_conv1[3]);
+    const TensorShape out_shape_conv1_bn(out_shape_conv1);
+    conv1_bn_b.allocator()->init(TensorInfo(b_shape_conv1_bn, 1, DataType::F32));
+    conv1_bn_s.allocator()->init(TensorInfo(s_shape_conv1_bn, 1, DataType::F32));
+    conv1_bn_rm.allocator()->init(TensorInfo(rm_shape_conv1_bn, 1, DataType::F32));
+    conv1_bn_riv.allocator()->init(TensorInfo(riv_shape_conv1_bn, 1, DataType::F32));
+    out_conv1_bn.allocator()->init(TensorInfo(out_shape_conv1_bn, 1, DataType::F32));
+    
+    // Initialize tensors of conv1_bn_relu
+    const TensorShape out_shape_conv1_bn_relu(out_shape_conv1);
+    out_conv1_bn_relu.allocator()->init(TensorInfo(out_shape_conv1_bn_relu, 1, DataType::F32));
+    /* -----------------------End: [Initialize tensors] */
+    
+    /* [Configure functions] */
+    conv1.configure(&src, &conv1_w, &conv1_b, &out_conv1, PadStrideInfo(2, 2, 1, 1));
+    conv1_bn.configure(&out_conv1, &out_conv1_bn, &conv1_bn_rm, &conv1_bn_riv, &conv1_bn_b, &conv1_bn_s, 0.0001);
+    conv1_bn_relu.configure(&out_conv1_bn, &out_conv1_bn_relu, ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::RELU));
+    /* -----------------------End: [Configure functions] */
+    
+    /* [Allocate tensors] */
+    // Now that the padding requirements are known we can allocate the images:
+    src.allocator()->allocate();
+    conv1_w.allocator()->allocate();
+    conv1_b.allocator()->allocate();
+    out_conv1.allocator()->allocate();
+    conv1_bn_b.allocator()->allocate();
+    conv1_bn_s.allocator()->allocate();
+    conv1_bn_rm.allocator()->allocate();
+    conv1_bn_riv.allocator()->allocate();
+    out_conv1_bn.allocator()->allocate();
+    out_conv1_bn_relu.allocator()->allocate();
+    /* -----------------------End: [Allocate tensors] */
+    
+    /* [Initialize weights and biases tensors] */
+    // Once the tensors have been allocated, the src, weights and biases tensors can be initialized
+    // ...
+    /* -----------------------[Initialize weights and biases tensors] */
+    
+    /* [Execute the functions] */
+    start = clock();
+    conv1.run();
+    conv1_bn.run();
+    conv1_bn_relu.run();
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    std::cout << "time: " << cpu_time_used * 1000 << "ms" << std::endl;
+    /* -----------------------End: [Execute the functions] */
+}
+
+/** Main program for mobilenets test
+*
+* The example implements the following mobilenets architecture:
+*
+*
+* @param[in] argc Number of arguments
+* @param[in] argv Arguments
+*/
+int main(int argc, const char **argv)
+{
+    return utils::run_example(argc, argv, main_mobilenets);
+}
+```
+&emsp;&emsp;__Eigen__[6][7] Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/eigen-matrix-matrix-benchmark.png)
+{:refdef}
 ## 引用
 
 ---
@@ -128,3 +287,6 @@ ACL(ARM-Compute Library)——The Computer Vision and Machine Learning library i
 [4] Arm(2017), The ARM Computer Vision and Machine Learning library is a set of functions optimised for both ARM CPUs and GPUs using SIMD technologies. https://arm-software.github.io/ComputeLibrary/v17.03.1/index.xhtml
 
 [5] Arm(2009), Introducing NEON Development Article. http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dht0002a/BABIIFHA.html
+[6] Eigen(2017), Eigen Home Page. https://eigen.tuxfamily.org/dox/GettingStarted.html
+[7] Zhihu(2017), 矩阵运算库blas, cblas, openblas, atlas, lapack, mkl之间有什么关系，在性能上区别大吗？. https://www.zhihu.com/question/27872849
+[8] Eigen(2017), Benchmark. http://eigen.tuxfamily.org/index.php?title=Benchmark
