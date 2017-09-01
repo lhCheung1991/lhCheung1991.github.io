@@ -27,7 +27,7 @@ lhcheung1991@gmail.com
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/alexnet-computation-benchmark.png)
 {:refdef}
-&emsp;&emsp;此处我们总结了业界现在进行卷积层计算和全连接层计算较为主流的方法，分别是 im2col + GEMM（Image to Column + GEneral Matrix Mutiplication），FFT（Fast Fourier Transforms），Winograd Transform。首先是 im2col + GEMM，这是处理卷积层计算较为直观的方法，它的核心思想是将计算转换成两个矩阵的乘法：1. 使用 im2col 将图像转换成一个矩阵；2. 使用 im2col 将卷积核转换成一个矩阵；3. 对前两步所得矩阵进行相乘操作。如下图所示。
+&emsp;&emsp;此处我们总结了业界现在进行卷积层计算和全连接层计算较为主流的方法，分别是 im2col + GEMM（Image to Column + GEneral Matrix Mutiplication），FFT（Fast Fourier Transforms），Winograd Transform。首先是 im2col + GEMM，这是处理卷积层计算较为直观的方法，它的核心思想是将计算转换成两个矩阵的乘法：1. 使用 im2col 将图像转换成一个矩阵；2. 使用 im2col 将卷积核转换成一个矩阵；3. 对前两步所得矩阵进行相乘操作。如下图所示。im2col 是 Matlab 提供的一个函数，在处理神经网络的三通道图像输入时，它的操作就是将一个 3D 的数组转换成一个 2D 的数组，这样我们才能把图像当成一个矩阵来处理。在卷积计算中，每个卷积核的运算对象都是输入的 3D 数据中的一个个小立方体，所以 im2col 在处理图像时会根据 stride 将一个个的小立方体中的数据拷贝成矩阵中的一行。
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
 {:refdef}
