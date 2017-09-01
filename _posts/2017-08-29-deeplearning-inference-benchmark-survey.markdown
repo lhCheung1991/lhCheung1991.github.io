@@ -270,7 +270,9 @@ int main(int argc, const char **argv)
     return utils::run_example(argc, argv, main_mobilenets);
 }
 ```
-&emsp;&emsp;__Eigen__[6][7] Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。
+&emsp;&emsp;__Eigen__[6][7]——Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。由 Eigen 的官方 benchmark 可以看出，在大多数操作上Eigen的优化已经逼近MKL，甚至一些操作超过了 MKL。
+- model name : Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz ( x86_64 )
+- compiler: c++ (SUSE Linux) 4.5.0 20100604 [gcc-4_5-branch revision 160292]
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/eigen-matrix-matrix-benchmark.png)
 {:refdef}
@@ -287,6 +289,9 @@ int main(int argc, const char **argv)
 [4] Arm(2017), The ARM Computer Vision and Machine Learning library is a set of functions optimised for both ARM CPUs and GPUs using SIMD technologies. https://arm-software.github.io/ComputeLibrary/v17.03.1/index.xhtml
 
 [5] Arm(2009), Introducing NEON Development Article. http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dht0002a/BABIIFHA.html
+
 [6] Eigen(2017), Eigen Home Page. https://eigen.tuxfamily.org/dox/GettingStarted.html
+
 [7] Zhihu(2017), 矩阵运算库blas, cblas, openblas, atlas, lapack, mkl之间有什么关系，在性能上区别大吗？. https://www.zhihu.com/question/27872849
+
 [8] Eigen(2017), Benchmark. http://eigen.tuxfamily.org/index.php?title=Benchmark
