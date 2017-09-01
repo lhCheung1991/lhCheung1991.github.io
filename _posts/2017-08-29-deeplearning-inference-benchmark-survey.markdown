@@ -20,15 +20,13 @@ lhcheung1991@gmail.com
 4. 总结。
 
 <br>
-
 ## 深度学习推断的主要操作
-
 ---
-
 <br>
-  对于大部分的卷积神经网络而言，卷积层是最消耗时间的部分，而全连接层则是参数量最多的部分[2]。
-
-
+&emsp;&emsp;对于大部分的卷积神经网络而言，卷积层是最消耗时间的部分，而全连接层则是参数量最多的部分[2]。
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/alexnet-computation-benchmark.png)
+{:refdef}
 
 ## 可用的开源库
 
@@ -270,8 +268,9 @@ int main(int argc, const char **argv)
     return utils::run_example(argc, argv, main_mobilenets);
 }
 ```
-&emsp;&emsp;__Eigen__[6][7][8]——Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。由 Eigen 的官方 benchmark 可以看出，在大多数操作上Eigen的优化已经逼近MKL，甚至一些操作超过了 MKL。Eigen 支持多个 SIMD 指令集，包括 ARM 的 NEON 指令集。
-> > Eigen supports SSE, AVX, AVX512, AltiVec/VSX (On Power7/8 systems in both little and big-endian mode), ARM NEON for 32 and 64-bit ARM SoCs, and now S390x SIMD (ZVector). With SSE, at least SSE2 is required. SSE3, SSSE3 and SSE4 are optional, and will automatically be used if they are enabled. Of course vectorization is not mandatory -- you can use Eigen on any CPU. Note: For S390x SIMD, due to lack of hardware support for 32-bit vector float types, only 32-bit ints and 64-bit double support has been added.
+&emsp;&emsp;__Eigen__[6][7][8]——Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。由 Eigen 的官方 benchmark 可以看出，在大多数操作上Eigen的优化已经逼近MKL，甚至一些操作超过了 MKL。Eigen 支持多个 SIMD 指令集，包括 ARM 的 NEON 指令集。也就是说，如果目标是 ARM 架构的芯片，那么使用 Eigen 将从 NEON 指令集获得性能增益。
+> Eigen supports SSE, AVX, AVX512, AltiVec/VSX (On Power7/8 systems in both little and big-endian mode), ARM NEON for 32 and 64-bit ARM SoCs, and now S390x SIMD (ZVector). With SSE, at least SSE2 is required. SSE3, SSSE3 and SSE4 are optional, and will automatically be used if they are enabled. Of course vectorization is not mandatory -- you can use Eigen on any CPU. Note: For S390x SIMD, due to lack of hardware support for 32-bit vector float types, only 32-bit ints and 64-bit double support has been added.
+
 - model name : Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz ( x86_64 )
 - compiler: c++ (SUSE Linux) 4.5.0 20100604 [gcc-4_5-branch revision 160292]
 {:refdef: style="text-align: center;"}
@@ -279,10 +278,10 @@ int main(int argc, const char **argv)
 {:refdef}
 
 
+<br>
 ## 引用
-
 ---
-
+<br>
 [1] csarron@github(2017), Embedded and mobile deep learning research resources. [https://github.com/csarron/emdl](https://github.com/csarron/emdl)
 
 [2] Wu, Jiaxiang, et al. "Quantized convolutional neural networks for mobile devices." *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*. 2016.
@@ -298,3 +297,7 @@ int main(int argc, const char **argv)
 [7] Zhihu(2017), 矩阵运算库blas, cblas, openblas, atlas, lapack, mkl之间有什么关系，在性能上区别大吗？. [https://www.zhihu.com/question/27872849](https://www.zhihu.com/question/27872849)
 
 [8] Eigen(2017), Benchmark. [http://eigen.tuxfamily.org/index.php?title=Benchmark](http://eigen.tuxfamily.org/index.php?title=Benchmark)
+
+[9] petewarden.com(2015), Why GEMM is at the heart of deep learning. [https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/](https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/)
+
+[10] Jia, Yangqing. Learning semantic image representations at a large scale. University of California, Berkeley, 2014.
