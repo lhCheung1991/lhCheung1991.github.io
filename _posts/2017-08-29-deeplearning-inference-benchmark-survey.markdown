@@ -27,6 +27,10 @@ lhcheung1991@gmail.com
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/alexnet-computation-benchmark.png)
 {:refdef}
+&emsp;&emsp;此处我们总结了业界现在进行卷积层计算和全连接层计算较为主流的方法，分别是 im2col + GEMM（Image to Column + GEneral Matrix Mutiplication），FFT（Fast Fourier Transforms），Winograd Transform。首先是 im2col + GEMM，这是处理卷积层计算较为直观的方法，它的核心思想是将计算转换成两个矩阵的乘法：1. 使用 im2col 将图像转换成一个矩阵；2. 使用 im2col 将卷积核转换成一个矩阵；3. 对前两步所得矩阵进行相乘操作。如下图所示。
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
+{:refdef}
 
 ## 可用的开源库
 
