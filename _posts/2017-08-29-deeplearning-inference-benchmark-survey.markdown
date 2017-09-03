@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "深度学习的推断计算框架综述"
+title: "深度学习的推断计算综述"
 categories: blogs
 ---
 
