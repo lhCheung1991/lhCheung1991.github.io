@@ -2,7 +2,7 @@
 layout: post
 title: "深度学习的推断计算综述"
 categories: blogs
-tags: Deep-Learning Inference
+tags: deep-learning inference 
 ---
 {:refdef: style="text-align: center;"}
 Linghan Cheung
@@ -44,6 +44,8 @@ $$
 {:refdef: style="text-align: center;"}
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
 {:refdef}
+
+&emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。
 
 ## 可用的开源库
 
@@ -318,6 +320,8 @@ int main(int argc, const char **argv)
 [9] petewarden.com(2015), Why GEMM is at the heart of deep learning. [https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/](https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/)
 
 [10] Jia, Yangqing. Learning semantic image representations at a large scale. University of California, Berkeley, 2014.
+
+[11] timdettmers.com(2015), Understanding Convolution in Deep Learning. [http://timdettmers.com/2015/03/26/convolution-deep-learning/](http://timdettmers.com/2015/03/26/convolution-deep-learning/)
 
 {%include math_jax.html%}
 {%include gitment.html%}
