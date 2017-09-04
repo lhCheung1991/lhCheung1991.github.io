@@ -45,10 +45,42 @@ $$
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
 {:refdef}
 
-&emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。使用 FFT 进行卷积的计算，其背后的数学原理是将时域中的卷积运算转换成频域中的乘积运算，从而减少将运算量减少。在 `R^2` 上连续可积的二元函数 `f`，`g`，其卷积的定义如下：
+&emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。使用 FFT 进行卷积的计算，其背后的数学原理是将时域中的卷积运算转换成频域中的乘积运算，从而将运算量减少。使用 FFT 变换进行卷积计算的定义如下：
+
+&emsp;&emsp;对于定义在整数 `Z^2` 上的二元函数 `f`, `g`，二者的离散卷积操作定义如下:
+
 $$
-(f * g)(x, y) = \iint f(u, v)g(x - u, y - v) d u d v
+（f * g）(x, y) = \sum^{\infty}_{u=-\infty}\sum^{\infty}_{v=-\infty}f(u, v)g(x - u, y - v)
 $$
+
+&emsp;&emsp;当 `f`, `g` 的支撑集为有限长度 `U`, `V` 时，上式会变成有限和：
+
+$$
+（f * g）(x, y) = \sum^{U}_{u=-U}\sum^{V}_{v=-V}f(u, v)g(x - u, y - v)
+$$
+
+&emsp;&emsp;两个离散信号在时域做卷积相当于这两个信号的离散傅里叶变换在频域做相乘，具体地，先将信号从时域转成频域：
+
+$$
+F(f) = DFT(f(x, y)) \\
+F(g) = DFT(g(x, y))
+$$
+
+&emsp;&emsp;则有(o 为矩阵逐元素相乘)：
+
+$$
+y(x, y) = f(x, y) * g(x, y) \leftrightarrow F(y) = DFT(y) = F(f) \circ F(g) = DFT(f(x, y)) \circ DFT(g(x, y))
+$$
+
+&emsp;&emsp;最后，我们在做一次傅里叶逆变换，将频域信号转回时域，就完成了卷积的计算：
+
+$$
+y(x, y) = IDFT(F(y)) = IDFT(DFT(f(x, y)) \circ DFT(g(x, y)))
+$$
+
+&emsp;&emsp;上述过程总共进行2次 DFT（离散傅里叶变换） 和1次 IDFT(逆离散傅里叶变换)，DFT 和 IDFT 的运算可以采用 FFT。要在频域中对一副图像进行滤波，滤波器的大小和图像的大小必须要匹配，这样两者的相乘才容易。因为一般卷积核的大小比图像要小，所以我们需要拓展我们的kernel，让它和图像的大小一致[13]，所以需要使用循环填充的方式将卷积核进行扩展，以便最后两个信号相乘时能够大小一致。
+
+&emsp;&emsp;采用上述方式进行卷积的计算，其优点显而易见——大大减少在时域中进行直接卷积运行的计算量。这种方法被一些神经网络运算库所采用，如 facebook 的 [NNPACK](https://github.com/Maratyszcza/NNPACK)。但是由于现代的卷积神经网络常使用 `stride = 2 / 3 / ...` 的卷积（上述方法为 `stride = 1`），所以其对卷积的方式有限制性，无论 stride 值为多少，都会进行 `stride = 1` 的操作，不如 im2col + GEMM 方式通用，而且当卷积核足够小、 stride 值足够大时，im2col + GEMM 的计算量将比 FFT 方法更少。
 
 ## 可用的开源库
 
@@ -325,6 +357,10 @@ int main(int argc, const char **argv)
 [10] Jia, Yangqing. Learning semantic image representations at a large scale. University of California, Berkeley, 2014.
 
 [11] timdettmers.com(2015), Understanding Convolution in Deep Learning. [http://timdettmers.com/2015/03/26/convolution-deep-learning/](http://timdettmers.com/2015/03/26/convolution-deep-learning/)
+
+[12] Wikipedia(2017), 卷积. [https://zh.wikipedia.org/wiki/%E5%8D%B7%E7%A7%AF](https://zh.wikipedia.org/wiki/%E5%8D%B7%E7%A7%AF)
+
+[13] zouxy09的专栏(2015), 图像卷积与滤波的一些知识点. [http://http://blog.csdn.net/zouxy09/article/details/49080029](http://http://blog.csdn.net/zouxy09/article/details/49080029)
 
 {%include math_jax.html%}
 {%include gitment.html%}
