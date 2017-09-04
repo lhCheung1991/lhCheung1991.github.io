@@ -45,7 +45,10 @@ $$
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
 {:refdef}
 
-&emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。
+&emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。使用 FFT 进行卷积的计算，其背后的数学原理是将时域中的卷积运算转换成频域中的乘积运算，从而减少将运算量减少。在 `R^2` 上连续可积的二元函数 `f`，`g`，其卷积的定义如下：
+$$
+(f * g)(x, y) = \iint f(u, v)g(x - u, y - v) d u d v
+$$
 
 ## 可用的开源库
 
