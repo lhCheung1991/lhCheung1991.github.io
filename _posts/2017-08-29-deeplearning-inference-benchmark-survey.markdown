@@ -2,11 +2,14 @@
 layout: post
 title: "深度学习的推断计算综述"
 categories: blogs
+tags: Deep-learning Inference
 ---
-
-Linghan Cheung 
-
+{:refdef: style="text-align: center;"}
+Linghan Cheung
+{:refdef}
+{:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
+{:refdef}
 
 <br>
 ## 摘要
