@@ -83,7 +83,6 @@ $$
 &emsp;&emsp;采用上述方式进行卷积的计算，其优点显而易见——大大减少在时域中进行直接卷积运行的计算量。这种方法被一些神经网络运算库所采用，如 facebook 的 [NNPACK](https://github.com/Maratyszcza/NNPACK)。但是由于现代的卷积神经网络常使用 `stride = 2 / 3 / ...` 的卷积（上述方法为 `stride = 1`），所以其对卷积的方式有限制性，无论 stride 值为多少，都会进行 `stride = 1` 的操作，不如 im2col + GEMM 方式通用，而且当卷积核足够小、 stride 值足够大时，im2col + GEMM 的计算量将比 FFT 方法更少。
 
 ## 可用的开源库
-
 ---
 <br>
   __NEON__[5]——在现代的软件系统中，当需要在32位微处理器上处理16位数据（如语音）或8位数据（如图片）时，有部分计算单位无法被用到。基于 SIMD（单指令多数据）计算模型可在这种情况下提高计算性能，如本来的一个32位数加法指令，可同时完成4个8位数的加法指令。如下图所示，为 ARMv6 `UADD8 R0, R1, R2` 指令 ，其利用32位通用处理器同时进行4个8位数的加法，这样的操作保证了4倍的执行效率而不需要增加额外的加法计算单元。从 ARMv7 架构开始，SIMD 计算模型便通过一组在特定的64位、128位向量寄存器（不同于通用寄存器）上进行操作的指令得到扩展，这组指令便成为 NEON，NEON 技术已经在 ARM Cortex-A 系列处理器上得到支持。NEON 指令由 ARM/Thumb 指令流进行执行，相比需要额外加速设备的加速方法，NEON 简化了软件的开发、调试和集成。
@@ -163,6 +162,15 @@ void add_ints(int * __restrict pa, int * __restrict pb, unsigned int n, int x)
     for(i = 0; i < (n & ~3); i++) pa[i] = pb[i] + x;
 }
 ```
+&emsp;&emsp;__Eigen__[[6]](https://eigen.tuxfamily.org/dox/GettingStarted.html)[7][8]——Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。由 Eigen 的官方 benchmark 可以看出，在大多数操作上Eigen的优化已经逼近MKL，甚至一些操作超过了 MKL。Eigen 支持多个 SIMD 指令集，包括 ARM 的 NEON 指令集。也就是说，如果目标是 ARM 架构的芯片，那么使用 Eigen 将从 NEON 指令集获得性能增益。
+> Eigen supports SSE, AVX, AVX512, AltiVec/VSX (On Power7/8 systems in both little and big-endian mode), ARM NEON for 32 and 64-bit ARM SoCs, and now S390x SIMD (ZVector). With SSE, at least SSE2 is required. SSE3, SSSE3 and SSE4 are optional, and will automatically be used if they are enabled. Of course vectorization is not mandatory -- you can use Eigen on any CPU. Note: For S390x SIMD, due to lack of hardware support for 32-bit vector float types, only 32-bit ints and 64-bit double support has been added.
+
+- model name : Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz ( x86_64 )
+- compiler: c++ (SUSE Linux) 4.5.0 20100604 [gcc-4_5-branch revision 160292]
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/eigen-matrix-matrix-benchmark.png)
+{:refdef}
+
 <br>
 &emsp;&emsp;__ACL(ARM-Compute Library)__[3][4]——专为 ARM CPU & GPU 优化设计的计算机视觉和机器学习库，基于 NEON & OpenCL 支持的 SIMD 技术。作为 ARM 自家的加速库，CPU 端基于 NEON 指令集做了许多高性能的接口，包括许多常用的图像处理函数、矩阵运算函数、神经网络操作函数等，如下图为 [ComputeLibrary/arm_compute/runtime/NEON/NEFunctions.h](https://github.com/ARM-software/ComputeLibrary/blob/master/arm_compute/runtime/NEON/NEFunctions.h) 文件所提供的函数一览，位操作、直方图均衡化、矩阵乘法、卷积、池化、BN应有尽有，接口粒度有粗有细。
 ```c++
@@ -322,17 +330,48 @@ int main(int argc, const char **argv)
     return utils::run_example(argc, argv, main_mobilenets);
 }
 ```
-&emsp;&emsp;__Eigen__[6][7][8]——Eigen 是 C/C++ 的高性能线性代数运算库，提供常用的矩阵操作，目前主流的深度学习框架如 TensorFlow，Caffe2等都选择 Eigen 作为 BLAS 库。Eigen 官方对业界常用的 BLAS 库做了 benchmark，比较了 Eigen3, Eigen2, Intel MKL, ACML, GOTO BLAS, ATLAS 的运算性能，在单线程情况下，最重量级的矩阵乘法性能对比如下图所示。由 Eigen 的官方 benchmark 可以看出，在大多数操作上Eigen的优化已经逼近MKL，甚至一些操作超过了 MKL。Eigen 支持多个 SIMD 指令集，包括 ARM 的 NEON 指令集。也就是说，如果目标是 ARM 架构的芯片，那么使用 Eigen 将从 NEON 指令集获得性能增益。
-> Eigen supports SSE, AVX, AVX512, AltiVec/VSX (On Power7/8 systems in both little and big-endian mode), ARM NEON for 32 and 64-bit ARM SoCs, and now S390x SIMD (ZVector). With SSE, at least SSE2 is required. SSE3, SSSE3 and SSE4 are optional, and will automatically be used if they are enabled. Of course vectorization is not mandatory -- you can use Eigen on any CPU. Note: For S390x SIMD, due to lack of hardware support for 32-bit vector float types, only 32-bit ints and 64-bit double support has been added.
 
-- model name : Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz ( x86_64 )
-- compiler: c++ (SUSE Linux) 4.5.0 20100604 [gcc-4_5-branch revision 160292]
-{:refdef: style="text-align: center;"}
-![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/eigen-matrix-matrix-benchmark.png)
-{:refdef}
+&emsp;&emsp;__NNPACK__[[14]](https://github.com/Maratyszcza/NNPACK)——NNPACK 由 facebook 开发，是一个加速神经网络推断计算的加速包，NNPACK可以在多核 CPU 平台上提高卷积层计算性能。NNPACK采用的快速卷积算法基于 Fourier transform 算法和 Winograd transform 算法。下表是 NNPACK 在官网上展出的跟 caffe 的性能比较[[14]](https://github.com/Maratyszcza/NNPACK)，由表可以看出，在常见网络结构的卷积操作中，NNPACK 都有一个很大算力提升（Forward propagation performance on Intel Core i7 6700K vs BVLC Caffe master branch as of March 24, 2016）。NNPACK 对 Fast Fourier transform，Winograd transform，Matrix-matrix multiplication(GEMM)，Matrix-vector multiplication (GEMV)，Max-pooling 做了特别的优化。NNPACK 已经被许多深度学习框架用于底层加速，包括 facebook 自家的 Caffe2。
 
-&emsp;&emsp;__NNPACK__[14]——NNPACK 由 facebook 开发，是一个加速神经网络推断计算的加速包，NNPACK可以在多核 CPU 平台上提高卷积层计算性能。NNPACK采用的快速卷积算法基于 Fourier transform 算法和 Winograd transform 算法。
+```shell
+| Library        | Caffe              | NNPACK      | NNPACK        | NNPACK                   |
+| -------------- | ------------------ | ----------- | ------------- | ------------------------ |
+| **Algorithm**  | **im2col + sgemm** | **FFT-8x8** | **FFT-16x16** | **Winograd F(6x6, 3x3)** |
+| AlexNet:conv2  |  315 ms            | 129 ms      | **86** ms     | N/A                      |
+| AlexNet:conv3  |  182 ms            |  87 ms      | **44** ms     | 70 ms                    |
+| AlexNet:conv4  |  264 ms            | 109 ms      | **56** ms     | 89 ms                    |
+| AlexNet:conv5  |  177 ms            |  77 ms      | **40** ms     | 64 ms                    |
+| VGG-A:conv1    | **255** ms         | 303 ms      | 260 ms        | 404 ms                   |
+| VGG-A:conv2    |  902 ms            | 369 ms      | **267** ms    | 372 ms                   |
+| VGG-A:conv3.1  |  566 ms            | 308 ms      | **185** ms    | 279 ms                   |
+| VGG-A:conv3.2  | 1091 ms            | 517 ms      | **309** ms    | 463 ms                   |
+| VGG-A:conv4.1  |  432 ms            | 228 ms      | **149** ms    | 188 ms                   |
+| VGG-A:conv4.2  |  842 ms            | 402 ms      | **264** ms    | 329 ms                   |
+| VGG-A:conv5    |  292 ms            | 141 ms      | **83** ms     | 114 ms                   |
+| OverFeat:conv2 |  424 ms            | 158 ms      | **73** ms     | N/A                      |
+| OverFeat:conv3 |  250 ms            |  69 ms      |  74 ms        | **54** ms                |
+| OverFeat:conv4 |  927 ms            | 256 ms      | 272 ms        | **173** ms               |
+| OverFeat:conv5 | 1832 ms            | 466 ms      | 524 ms        | **315** ms               |
+```
+&emsp;&emsp;NNPACK 主要支持下列的神经网络操作：
 
+- Convolutional layer
+    - Training-optimized forward propagation (nnp_convolution_output)
+    - Training-optimized backward input gradient update (nnp_convolution_input_gradient)
+    - Training-optimized backward kernel gradient update (nnp_convolution_kernel_gradient)
+- Inference-optimized forward propagation (nnp_convolution_inference)
+- Fully-connected layer
+    - Training-optimized forward propagation (nnp_fully_connected_output)
+    - Inference-optimized forward propagation (nnp_fully_connected_inference)
+- Max pooling layer
+    - Forward propagation, both for training and inference, (nnp_max_pooling_output)
+- ReLU layer (with parametrized negative slope)
+    - Forward propagation, both for training and inference, optionally in-place, (nnp_relu_output)
+    - Backward input gradient update (nnp_relu_input_gradient)
+- Softmax layer
+    - Forward propagation, both for training and inference, optionally in-place (nnp_softmax_output)
+
+&emsp;&emsp;__NCNN__[[15]](https://github.com/Tencent/ncnn)——NCNN 由腾讯研发开源，是一个专门为移动端进行优化的神经网络推断计算框架。
 
 <br>
 ## 引用
@@ -365,3 +404,5 @@ int main(int argc, const char **argv)
 [13] zouxy09的专栏(2015), 图像卷积与滤波的一些知识点. [http://http://blog.csdn.net/zouxy09/article/details/49080029](http://http://blog.csdn.net/zouxy09/article/details/49080029)
 
 [14] Maratyszcza@github(2017), NNPACK. [https://github.com/Maratyszcza/NNPACK](https://github.com/Maratyszcza/NNPACK)
+
+[15] Tencent@github(2017), NCNN. [https://github.com/Tencent/ncnn](https://github.com/Tencent/ncnn)
