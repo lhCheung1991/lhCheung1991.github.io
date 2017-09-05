@@ -371,7 +371,9 @@ int main(int argc, const char **argv)
 - Softmax layer
     - Forward propagation, both for training and inference, optionally in-place (nnp_softmax_output)
 
-&emsp;&emsp;__NCNN__[[15]](https://github.com/Tencent/ncnn)——NCNN 由腾讯研发开源，是一个专门为移动端进行优化的神经网络推断计算框架。
+&emsp;&emsp;__NCNN__[[15]](https://github.com/Tencent/ncnn)——NCNN 由腾讯研发开源，是一个专门为移动端进行优化的神经网络推断计算框架，其不依赖于其他第三方库，网络操作如卷积、池化等均由框架自己实现，这是 NCNN 相对于 Caffe2、TensorFlow 等所不同的一个特点。目前， NCNN 只支持对深度学习训练框架 [Caffe](https://github.com/BVLC/caffe)[[16]](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy) 导出的模型进行解析。
+
+&emsp;&emsp;__TVM__[[]]()——
 
 <br>
 ## 引用
@@ -406,3 +408,5 @@ int main(int argc, const char **argv)
 [14] Maratyszcza@github(2017), NNPACK. [https://github.com/Maratyszcza/NNPACK](https://github.com/Maratyszcza/NNPACK)
 
 [15] Tencent@github(2017), NCNN. [https://github.com/Tencent/ncnn](https://github.com/Tencent/ncnn)
+
+[16] BVLC@github(2017), Using a Trained Network: Deploy. [https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy)
