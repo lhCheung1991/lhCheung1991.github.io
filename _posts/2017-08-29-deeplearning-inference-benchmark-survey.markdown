@@ -331,6 +331,8 @@ int main(int argc, const char **argv)
 ![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/eigen-matrix-matrix-benchmark.png)
 {:refdef}
 
+&emsp;&emsp;__NNPACK__[14]——NNPACK 由 facebook 开发，是一个加速神经网络推断计算的加速包，NNPACK可以在多核 CPU 平台上提高卷积层计算性能。NNPACK采用的快速卷积算法基于 Fourier transform 算法和 Winograd transform 算法。
+
 
 <br>
 ## 引用
@@ -361,6 +363,8 @@ int main(int argc, const char **argv)
 [12] Wikipedia(2017), 卷积. [https://zh.wikipedia.org/wiki/%E5%8D%B7%E7%A7%AF](https://zh.wikipedia.org/wiki/%E5%8D%B7%E7%A7%AF)
 
 [13] zouxy09的专栏(2015), 图像卷积与滤波的一些知识点. [http://http://blog.csdn.net/zouxy09/article/details/49080029](http://http://blog.csdn.net/zouxy09/article/details/49080029)
+
+[14] Maratyszcza@github(2017), NNPACK. [https://github.com/Maratyszcza/NNPACK](https://github.com/Maratyszcza/NNPACK)
 
 {%include math_jax.html%}
 {%include gitment.html%}
