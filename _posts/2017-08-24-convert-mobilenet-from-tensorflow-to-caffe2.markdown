@@ -425,5 +425,3 @@ print results
 [1] Howard A G, Zhu M, Chen B, et al. MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications[J]. 2017.
 
 [2] Google (2017) Protocol buffers are a language-neutral, platform-neutral extensible mechanism for serializing structured data. https://developers.google.com/protocol-buffers/
-
-{%include math_jax.html%}

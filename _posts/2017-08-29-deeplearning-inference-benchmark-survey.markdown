@@ -365,5 +365,3 @@ int main(int argc, const char **argv)
 [13] zouxy09的专栏(2015), 图像卷积与滤波的一些知识点. [http://http://blog.csdn.net/zouxy09/article/details/49080029](http://http://blog.csdn.net/zouxy09/article/details/49080029)
 
 [14] Maratyszcza@github(2017), NNPACK. [https://github.com/Maratyszcza/NNPACK](https://github.com/Maratyszcza/NNPACK)
-
-{%include math_jax.html%}
