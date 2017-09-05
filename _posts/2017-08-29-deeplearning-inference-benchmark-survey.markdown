@@ -367,4 +367,3 @@ int main(int argc, const char **argv)
 [14] Maratyszcza@github(2017), NNPACK. [https://github.com/Maratyszcza/NNPACK](https://github.com/Maratyszcza/NNPACK)
 
 {%include math_jax.html%}
-{%include gitment.html%}
