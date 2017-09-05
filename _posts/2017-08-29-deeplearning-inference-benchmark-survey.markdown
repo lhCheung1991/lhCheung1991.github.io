@@ -373,6 +373,22 @@ int main(int argc, const char **argv)
 
 &emsp;&emsp;__NCNN__[[15]](https://github.com/Tencent/ncnn)——NCNN 由腾讯研发开源，是一个专门为移动端进行优化的神经网络推断计算框架，其不依赖于其他第三方库，网络操作如卷积、池化等均由框架自己实现，这是 NCNN 相对于 Caffe2、TensorFlow 等所不同的一个特点。目前， NCNN 只支持对深度学习训练框架 [Caffe](https://github.com/BVLC/caffe)[[16]](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy) 导出的模型进行解析。
 
+&emsp;&emsp;使用 [Caffe](https://github.com/BVLC/caffe) 进行模型的训练，当训练完成时，框架会导出一个存有训练得到的网络各层的参数文件 `*.caffemodel`，配合描述网络结构的文件 `deploy.prototxt`，即可调用 Caffe 的推断接口生成对应的推断器，在输入图像即可进行推断，如下为使用 Caffe 的 Python 接口进行推断的代码示意:
+
+```python
+model = 'deploy.prototxt'    # model ready to deploy
+weights = 'net_4800.caffemodel'
+caffe.set_mode_gpu()
+caffe.set_device(0)
+net = caffe.Net(model, weights, 'test')    # init a predictor
+# input image and get predict score
+image = imread('example_4.png')
+res = net.forward({image})
+prob = res{1}
+```
+&emsp;&emsp;NCNN 并不提供网络训练的响应操作，其起到的作用正如上述代码所示——读入网络参数与结构，进行前向推断运算。
+
+
 &emsp;&emsp;__TVM__[[]]()——
 
 <br>
