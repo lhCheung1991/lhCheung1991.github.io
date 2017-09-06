@@ -330,7 +330,7 @@ int main(int argc, const char **argv)
     return utils::run_example(argc, argv, main_mobilenets);
 }
 ```
-
+<br>
 &emsp;&emsp;__NNPACK__[[14]](https://github.com/Maratyszcza/NNPACK)——NNPACK 由 facebook 开发，是一个加速神经网络推断计算的加速包，NNPACK可以在多核 CPU 平台上提高卷积层计算性能。NNPACK采用的快速卷积算法基于 Fourier transform 算法和 Winograd transform 算法。下表是 NNPACK 在官网上展出的跟 caffe 的性能比较[[14]](https://github.com/Maratyszcza/NNPACK)，由表可以看出，在常见网络结构的卷积操作中，NNPACK 都有一个很大算力提升（Forward propagation performance on Intel Core i7 6700K vs BVLC Caffe master branch as of March 24, 2016）。NNPACK 对 Fast Fourier transform，Winograd transform，Matrix-matrix multiplication(GEMM)，Matrix-vector multiplication (GEMV)，Max-pooling 做了特别的优化。NNPACK 已经被许多深度学习框架用于底层加速，包括 facebook 自家的 Caffe2。
 
 ```shell
@@ -370,10 +370,10 @@ int main(int argc, const char **argv)
     - Backward input gradient update (nnp_relu_input_gradient)
 - Softmax layer
     - Forward propagation, both for training and inference, optionally in-place (nnp_softmax_output)
-
+<br>
 &emsp;&emsp;__NCNN__[[15]](https://github.com/Tencent/ncnn)——NCNN 由腾讯研发开源，是一个专门为移动端进行优化的神经网络推断计算框架，其不依赖于其他第三方库，网络操作如卷积、池化等均由框架自己实现，这是 NCNN 相对于 Caffe2、TensorFlow 等所不同的一个特点。目前， NCNN 只支持对深度学习训练框架 [Caffe](https://github.com/BVLC/caffe)[[16]](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy) 导出的模型进行解析。
 
-&emsp;&emsp;使用 [Caffe](https://github.com/BVLC/caffe) 进行模型的训练，当训练完成时，框架会导出一个存有训练得到的网络各层的参数文件 `*.caffemodel`，配合描述网络结构的文件 `deploy.prototxt`，即可调用 Caffe 的推断接口生成对应的推断器，在输入图像即可进行推断，如下为使用 Caffe 的 Python 接口进行推断的代码示意:
+&emsp;&emsp;使用 [Caffe](https://github.com/BVLC/caffe) 进行模型的训练，当训练完成时，框架会导出一个存有训练得到的网络各层的参数文件 `*.caffemodel`，配合描述网络结构的文件 `deploy.prototxt`，即可调用 Caffe 的推断接口生成对应的推断器，在输入图像即可进行推断，如下为使用 Caffe 的 Python 接口进行推断的代码示意[[16]](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy):
 
 ```python
 model = 'deploy.prototxt'    # model ready to deploy
@@ -386,9 +386,52 @@ image = imread('example_4.png')
 res = net.forward({image})
 prob = res{1}
 ```
-&emsp;&emsp;NCNN 并不提供网络训练的响应操作，其起到的作用正如上述代码所示——读入网络参数与结构，进行前向推断运算。
+&emsp;&emsp;NCNN 并不提供网络训练的相应操作，其起到的作用与上述代码一致——读入网络参数与结构，进行前向推断运算。由于 Caffe 模型与 NCNN 模型并不完全兼容，所以 在使用 NCNN 之前需要先对 Caffe 模型进行转换，这个过程由 NCNN 所提供的转换工具 `caffe2ncnn` 完成，NCNN 在本地进行编译时在 `ncnn/build/tools` 下会生成一系列的工具程序。除了模型转换程序，NCNN 还提供模型的加密程序 `ncnn2mem`，用于对网络结构文件和网络参数文件进行加密。读取加密模型与读取非加密模型需要使用不同的接口，如下代码所示：
 
+```c++
+// 读取非加密文件
+ncnn::Net net;
+net.load_param("alexnet.param");
+net.load_model("alexnet.bin");
+// 读取加密文件
+ncnn::Net net;
+net.load_param_bin("alexnet.param.bin");
+net.load_model("alexnet.bin");
+```
 
+&emsp;&emsp;NCNN 的推断过程很方便，在 [ncnn/examples/squeezenet.cpp](https://github.com/Tencent/ncnn/blob/master/examples/squeezenet.cpp) 下有例程，核心操作如下代码所示。相比 ACL、NNPACK 等网络操作库，使用 NCNN 不同再重新定义推断的网络，这提高了 Caffe 所导出模型的通用性，在对模型进行修改后不用推断的代码进行修改。
+
+```c++
+static int detect_squeezenet(const cv::Mat& bgr, std::vector<float>& cls_scores)
+{
+    ncnn::Net squeezenet;
+    squeezenet.load_param("squeezenet_v1.1.param");    // 加载网络参数文件
+    squeezenet.load_model("squeezenet_v1.1.bin");    // 加载网络结构文件
+
+    // 将 OpenCV2 的输入图像进行格式转换
+    ncnn::Mat in = ncnn::Mat::from_pixels_resize(bgr.data, ncnn::Mat::PIXEL_BGR, bgr.cols, bgr.rows, 227, 227);
+
+    const float mean_vals[3] = {104.f, 117.f, 123.f};
+    in.substract_mean_normalize(mean_vals, 0);
+
+    ncnn::Extractor ex = squeezenet.create_extractor();
+    ex.set_light_mode(true);
+
+    ex.input("data", in);    // 输入推断数据
+
+    ncnn::Mat out;
+    ex.extract("prob", out);    // 获得推断结果
+
+    cls_scores.resize(out.c);
+    for (int j=0; j<out.c; j++)
+    {
+        const float* prob = out.data + out.cstep * j;
+        cls_scores[j] = prob[0];
+    }
+    return 0;
+}
+```
+<br>
 &emsp;&emsp;__TVM__[[]]()——
 
 <br>
@@ -426,3 +469,5 @@ prob = res{1}
 [15] Tencent@github(2017), NCNN. [https://github.com/Tencent/ncnn](https://github.com/Tencent/ncnn)
 
 [16] BVLC@github(2017), Using a Trained Network: Deploy. [https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy)
+
+[17] ruyiweicas@csdn, Ubuntu16.04---腾讯NCNN框架入门到应用. [http://blog.csdn.net/best_coder/article/details/76201275](http://blog.csdn.net/best_coder/article/details/76201275)
