@@ -432,8 +432,47 @@ static int detect_squeezenet(const cv::Mat& bgr, std::vector<float>& cls_scores)
     return 0;
 }
 ```
+
 <br>
-&emsp;&emsp;__TVM__[[]]()——
+&emsp;&emsp;__TVM__[[18]](https://github.com/dmlc/tvm)——TVM 提供了一个 Tensor 的中间描述层，围绕着这个中间描述层，TVM 提供了操作 Tensor 的计算接口，并能向下生成各个平台的运行代码，从而向上提供给各类深度学习框架使用。TVM 的工作流程分为如下几个步骤：1. 描述 Tensor 和计算规则；2. 定义计算规则的运算方式；3. 编译出所需平台的运行代码；4. 集成生成函数。
+
+&emsp;&emsp;TVM 使用类似于 TensorFlow 的计算图模型来定义计算规则，如下代码所示定义了 Tensor A，B，C 进行向量加的运算规则，其使用 lamda 表达式来描述 Tensor 中各个元素之间的计算关系。在此阶段不会有任何具体的运算发生：
+
+```python
+n = tvm.var("n")
+A = tvm.placeholder((n,), name='A')
+B = tvm.placeholder((n,), name='B')
+C = tvm.compute(A.shape, lambda i: A[i] + B[i], name="C")
+```
+
+&emsp;&emsp;定义完计算规则后，计算规则本身是可以有多种不同的实现的。如上述的向量加，由于向量各个元素之间的运算并不存在依赖关系，所以可以使用并行的方式来进行计算，但是这在不同的设备上，其实现的代码则千差万别。TVM 要求工程师为计算规则定义一个对应的 schedule，用来描述计算规则的运算方式，以便能针对不同的计算平台生成相应的代码，我们可以把 schedule 理解为计算规则的转换方式，如下代码定义了一个 schedule，默认情况下，schedule 将以串行的方式来对计算规则进行运算。此处我们使用 `split` 函数来对串行的运算方式进行分解，使之能以 `factor` 个元素为单位对运算方式进行分解:
+
+```python
+s = tvm.create_schedule(C.op)
+# schedule 的默认运算方式，其效果与如下代码等同
+# for (int i = 0; i < n; ++i) {
+#  C[i] = A[i] + B[i];
+# }
+
+bx, tx = s[C].split(C.op.axis[0], factor=64)
+# 使用 split 对串行的运算方式进行分解，其效果与如下代码等同
+# for (int bx = 0; bx < ceil(n / 64); ++bx) 
+# {
+#   for (int tx = 0; tx < 64; ++tx) 
+#   {
+#     int i = bx * 64 + tx;
+#     if (i < n)
+#       C[i] = A[i] + B[i];
+#   }
+# }
+```
+
+&emsp;&emsp;当定义完 schedule 后，就可以对特定计算平台进行绑定，编译出所需的代码，如下代码将 schedule 所返回的两个迭代子与 NVIDIA GPU 的 CUDA 计算模型进行绑定，
+
+```python
+s[C].bind(bx, tvm.thread_axis("blockIdx.x"))
+s[C].bind(tx, tvm.thread_axis("threadIdx.x"))
+```
 
 <br>
 ## 引用
@@ -472,3 +511,5 @@ static int detect_squeezenet(const cv::Mat& bgr, std::vector<float>& cls_scores)
 [16] BVLC@github(2017), Using a Trained Network: Deploy. [https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy](https://github.com/BVLC/caffe/wiki/Using-a-Trained-Network:-Deploy)
 
 [17] ruyiweicas@csdn, Ubuntu16.04---腾讯NCNN框架入门到应用. [http://blog.csdn.net/best_coder/article/details/76201275](http://blog.csdn.net/best_coder/article/details/76201275)
+
+[18] TVM(2017), Tutorial of TVM. [http://docs.tvmlang.org/tutorials/index.html](http://docs.tvmlang.org/tutorials/index.html)
