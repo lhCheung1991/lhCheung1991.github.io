@@ -69,7 +69,7 @@ F(f) = DFT(f(x, y)) \\
 F(g) = DFT(g(x, y))
 $$
 
-&emsp;&emsp;则有(o 为矩阵逐元素相乘)：
+&emsp;&emsp;则有(o 为矩阵逐元素相乘，经过离散傅里叶变换后得到的矩阵大小与原来的相同)：
 
 $$
 y(x, y) = f(x, y) * g(x, y) \leftrightarrow F(y) = DFT(y) = F(f) \circ F(g) = DFT(f(x, y)) \circ DFT(g(x, y))
@@ -83,8 +83,9 @@ $$
 
 &emsp;&emsp;上述过程总共进行2次 DFT（离散傅里叶变换） 和1次 IDFT(逆离散傅里叶变换)，DFT 和 IDFT 的运算可以采用 FFT。要在频域中对一副图像进行滤波，滤波器的大小和图像的大小必须要匹配，这样两者的相乘才容易。因为一般卷积核的大小比图像要小，所以我们需要拓展我们的kernel，让它和图像的大小一致[13]，所以需要使用循环填充的方式将卷积核进行扩展，以便最后两个信号相乘时能够大小一致。
 
-&emsp;&emsp;采用上述方式进行卷积的计算，其优点显而易见——大大减少在时域中进行直接卷积运行的计算量。这种方法被一些神经网络运算库所采用，如 facebook 的 [NNPACK](https://github.com/Maratyszcza/NNPACK)。但是由于现代的卷积神经网络常使用 `stride = 2 / 3 / ...` 的卷积（上述方法为 `stride = 1`），所以其对卷积的方式有限制性，无论 stride 值为多少，都会进行 `stride = 1` 的操作，不如 im2col + GEMM 方式通用，而且当卷积核足够小、 stride 值足够大时，im2col + GEMM 的计算量将比 FFT 方法更少。
+&emsp;&emsp;采用上述方式进行卷积的计算，其优点显而易见——大大减少在时域中进行直接卷积运行的计算量。这种方法被一些神经网络运算库所采用，如 facebook 的 [NNPACK](https://github.com/Maratyszcza/NNPACK)。但是由于现代的卷积神经网络常使用 `stride = 2 / 3 / ...` 的卷积（上述方法为 `stride = 1`），所以其对卷积的方式有限制性，无论 stride 值为多少，都会进行 `stride = 1` 的操作，不如 im2col + GEMM 方式通用，而且当卷积核足够小、 stride 值足够大时，im2col + GEMM 的计算量将比 FFT 方法更少。各个厂商在实现其神经网络库的卷积操作所采取的方法各不相同，都有其所考虑的侧重点，如 NVIDIA cuDNN 就撅弃了 FFT 这种方式，具体可参考 [Chetlur, Sharan, et al. "cudnn: Efficient primitives for deep learning." arXiv preprint arXiv:1410.0759 (2014).](https://arxiv.org/abs/1410.0759)
 
+<br>
 ## 可用的开源库
 ---
 <br>
