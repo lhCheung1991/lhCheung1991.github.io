@@ -11,7 +11,6 @@ Linghan Cheung
 {:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
 {:refdef}
-
 <br>
 ## 摘要
 ---
@@ -57,13 +56,13 @@ $$
 （f * g）(x, y) = \sum^{\infty}_{u=-\infty}\sum^{\infty}_{v=-\infty}f(u, v)g(x - u, y - v)
 $$
 
-&emsp;&emsp;当 `f`, `g` 的支撑集为有限长度 `U`, `V` 时，上式会变成有限和：
+&emsp;&emsp;当 `f`, `g` 的支撑集为有限长度 `U`, `V` 时，上式会变成有限和（即 `U`, `V` 将决定卷积核进行计算的大小）：
 
 $$
 （f * g）(x, y) = \sum^{U}_{u=-U}\sum^{V}_{v=-V}f(u, v)g(x - u, y - v)
 $$
 
-&emsp;&emsp;两个离散信号在时域做卷积相当于这两个信号的离散傅里叶变换在频域做相乘，具体地，先将信号从时域转成频域：
+&emsp;&emsp;由卷积定理我们知道，两个离散信号在时域做卷积的离散傅里叶变换相当于这两个信号的离散傅里叶变换在频域做相乘，具体地，先将信号从时域转成频域：
 
 $$
 F(f) = DFT(f(x, y)) \\
@@ -76,7 +75,7 @@ $$
 y(x, y) = f(x, y) * g(x, y) \leftrightarrow F(y) = DFT(y) = F(f) \circ F(g) = DFT(f(x, y)) \circ DFT(g(x, y))
 $$
 
-&emsp;&emsp;最后，我们在做一次傅里叶逆变换，将频域信号转回时域，就完成了卷积的计算：
+&emsp;&emsp;最后，我们再做一次傅里叶逆变换，将频域信号转回时域，就完成了卷积的计算：
 
 $$
 y(x, y) = IDFT(F(y)) = IDFT(DFT(f(x, y)) \circ DFT(g(x, y)))
