@@ -34,7 +34,13 @@ lhcheung1991@gmail.com
 
 &emsp;&emsp;此处我们总结了业界现在进行卷积层计算和全连接层计算较为主流的方法，分别是 im2col + GEMM（Image to Column + GEneral Matrix Mutiplication），FFT（Fast Fourier Transforms），Winograd Transform。由于卷积层和全连接层的计算实现原理相仿，故此处以卷积层的计算为示例。
 
-&emsp;&emsp;首先是 im2col + GEMM，这是处理卷积层计算较为直观的方法，它的核心思想是将计算转换成两个矩阵的乘法：1. 使用 im2col 将图像转换成一个矩阵；2. 使用 im2col 将卷积核转换成一个矩阵；3. 对前两步所得矩阵进行相乘操作。如下图所示。im2col 是 Matlab 提供的一个函数，在处理神经网络的三通道图像输入时，它的操作就是将一个 3D 的数组转换成一个 2D 的数组，这样我们才能把图像当成一个矩阵来处理。在卷积计算中，每个卷积核的运算对象都是输入的 3D 数据中的一个个小立方体，所以 im2col 在处理图像时会根据 stride 将一个个的小立方体中的数据拷贝成矩阵中的一行。我们对卷积核进行相同的转换操作，再将得到的卷积核矩阵进行一下转置，就可以进行卷积层的运算操作了。这里 k 是每个卷积核和输入立方体的数值个数，那么假设我们要处理 1 x 3 x 160 x 160 (N x C x H x W)的一张图像，经过一个 3 x 3 x 3 x 16 (H x W x I x O) 的卷积层，stride = 1，padding = 0，则需要进行如下的矩阵运算：
+&emsp;&emsp;首先是 im2col + GEMM，这是处理卷积层计算较为直观的方法，它的核心思想是将计算转换成两个矩阵的乘法：1. 使用 im2col 将图像转换成一个矩阵；2. 使用 im2col 将卷积核转换成一个矩阵；3. 对前两步所得矩阵进行相乘操作。如下图所示：
+
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
+{:refdef}
+
+&emsp;&emsp;im2col 原来是 Matlab 中提供的一个函数，在处理神经网络的三通道图像输入时，它的操作就是将一个 3D 的数组转换成一个 2D 的数组，这样我们才能把图像当成一个矩阵来处理。在卷积计算中，每个卷积核的运算对象都是输入的 3D 数据中的一个个小立方体，所以 im2col 在处理图像时会根据 stride 将一个个的小立方体中的数据拷贝成矩阵中的一行。我们对卷积核进行相同的转换操作，再将得到的卷积核矩阵进行一下转置，就可以进行卷积层的运算操作了。这里 k 是每个卷积核和输入立方体的数值个数，那么假设我们要处理 1 x 3 x 160 x 160 (N x C x H x W)的一张图像，经过一个 3 x 3 x 3 x 16 (H x W x I x O) 的卷积层，stride = 1，padding = SAME，则需要进行如下的矩阵运算：
 
 $$
 A_{160 \times 160,3 \times 3 \times 3} \times B_{3 \times 3 \times 3,16} = C_{160 \times 160, 16} \\
@@ -42,9 +48,6 @@ where \ A \ is \ input \ matrix \ and \ B \ is \ kernel \ matrix
 $$
 
 &emsp;&emsp;或许你已经注意到了，如果 stride < kernel size，那么将会有大量的重复像素被包含到转换之后的矩阵之中，这对于内存而言是一个很大的消耗。这是 im2col + GEMM 进行卷积运算的一个明显缺点，不过相比起能够利用多年来科学计算工程师对大矩阵相乘优化的成果，这个缺点就显得微不足道了。im2col + GEMM 方案被很多计算框架所采用，例如贾杨清博士编写的 Caffe 框架就是这么实现的，具体请参考这篇文章：[在 Caffe 中如何计算卷积？](https://www.zhihu.com/question/28385679/answer/44297845?utm_source=qq&utm_medium=social)。全连接层的运算利用 im2col + GEMM 实现较为容易理解，限于篇幅所限我们这里不展开讨论。
-{:refdef: style="text-align: center;"}
-![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/conv-to-GEMM.png)
-{:refdef}
 
 &emsp;&emsp;第二个方法是基于快速傅里叶变换的卷积法（Fast Fourier Transforms）[11]。使用 FFT 进行卷积的计算，其背后的数学原理是将时域中的卷积运算转换成频域中的乘积运算，从而将运算量减少。使用 FFT 变换进行卷积计算的定义如下：
 
