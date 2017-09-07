@@ -467,11 +467,65 @@ bx, tx = s[C].split(C.op.axis[0], factor=64)
 # }
 ```
 
-&emsp;&emsp;当定义完 schedule 后，就可以对特定计算平台进行绑定，编译出所需的代码，如下代码将 schedule 所返回的两个迭代子与 NVIDIA GPU 的 CUDA 计算模型进行绑定，
+&emsp;&emsp;当定义完 schedule 后，就可以对特定计算平台进行绑定，编译出所需的代码，如下代码将 schedule 所返回的两个迭代子与 NVIDIA GPU 的 CUDA 计算模型进行绑定，`bx` 为 `s` 的第一层迭代子，其对应 CUDA 中的线程块（BLOCK），在上述配置下，将有 `ceil(n / 64)` 个线程块运行在 GPU 上；`tx` 为 `s` 的第二层迭代子，每次迭代将对一个 `C` 的元素进行计算，在 GPU 上每次迭代将由一个线程（thread）来负责计算，即每个线程块中将配置 64 个线程。绑定完成后，我们可以调用 `build` 函数生成对应的 TVM 函数，`build` 函数会接收 `schedule`、输入输出的 tensor、目标语言、目标 host等作为参数，生成一个指定语言的函数接口（默认为 Python）。此处生成的 `fadd_cuda` 是 CUDA 核函数的一个 warpper，使用它便可将运算在 NVIDIA GPU 上执行。
 
 ```python
 s[C].bind(bx, tvm.thread_axis("blockIdx.x"))
 s[C].bind(tx, tvm.thread_axis("threadIdx.x"))
+
+fadd_cuda = tvm.build(s, [A, B, C], "cuda", target_host="llvm", name="myadd")
+```
+
+&emsp;&emsp;生成函数接口之后，我们可以使用任意语言来调用该函数接口，此处我们仍然是用 Python 来进行调用：1. 先声明一个 GPU context, 使之能与我们 CPU 端的线程形成对应关系；2. `tvm.nd.array` 将数据拷贝到 GPU 之上；3. 执行运算。
+
+```python
+ctx = tvm.gpu(0)
+n = 1024
+a = tvm.nd.array(np.random.uniform(size=n).astype(A.dtype), ctx)
+b = tvm.nd.array(np.random.uniform(size=n).astype(B.dtype), ctx)
+c = tvm.nd.array(np.zeros(n, dtype=C.dtype), ctx)
+fadd_cuda(a, b, c)
+np.testing.assert_allclose(c.asnumpy(), a.asnumpy() + b.asnumpy())
+```
+
+&emsp;&emsp;我们可以将生成的 CUDA 代码输入示意 `fadd_cuda.imported_modules[0].get_source()`:
+
+```c++
+// -----CUDA code-----
+extern "C" __global__ void myadd__kernel0(float* __restrict__ C, float* __restrict__ A, float* __restrict__ B, int n) {
+  if (((int)blockIdx.x) < ((n + -127) / 64)) {
+    C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
+  } else {
+    if ((((int)blockIdx.x) * 64) < (n - ((int)threadIdx.x))) {
+      C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
+    }
+  }
+}
+```
+
+&emsp;&emsp;而当我们希望使用 OpenCL 的计算设备时，则可以选择生成 OpenCL 所需的代码，并是用 `fadd_cl.imported_modules[0].get_source()` 查看其生成的 OpenCL 代码：
+
+```c++
+fadd_cl = tvm.build(s, [A, B, C], "opencl", name="myadd")
+ctx = tvm.cl(0)
+n = 1024
+a = tvm.nd.array(np.random.uniform(size=n).astype(A.dtype), ctx)
+b = tvm.nd.array(np.random.uniform(size=n).astype(B.dtype), ctx)
+c = tvm.nd.array(np.zeros(n, dtype=C.dtype), ctx)
+fadd_cl(a, b, c)
+```
+
+```c++
+// ------opencl code------
+__kernel void myadd__kernel0(__global float* restrict C, __global float* restrict A, __global float* restrict B, int n) {
+  if (((int)get_group_id(0)) < ((n + -127) / 64)) {
+    C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
+  } else {
+    if ((((int)get_group_id(0)) * 64) < (n - ((int)get_local_id(0)))) {
+      C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
+    }
+  }
+}
 ```
 
 <br>
