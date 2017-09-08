@@ -533,10 +533,12 @@ fadd_cl(a, b, c)
 // ------opencl code------
 __kernel void myadd__kernel0(__global float* restrict C, __global float* restrict A, __global float* restrict B, int n) {
   if (((int)get_group_id(0)) < ((n + -127) / 64)) {
-    C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
+    C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = 
+        (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
   } else {
     if ((((int)get_group_id(0)) * 64) < (n - ((int)get_local_id(0)))) {
-      C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
+      C[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] = 
+        (A[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))] + B[((((int)get_group_id(0)) * 64) + ((int)get_local_id(0)))]);
     }
   }
 }
