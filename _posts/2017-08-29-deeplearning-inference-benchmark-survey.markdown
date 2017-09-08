@@ -182,6 +182,7 @@ void add_ints(int * __restrict pa, int * __restrict pb, unsigned int n, int x)
 
 <br>
 &emsp;&emsp;__ACL(ARM-Compute Library)__[3][4]——专为 ARM CPU & GPU 优化设计的计算机视觉和机器学习库，基于 NEON & OpenCL 支持的 SIMD 技术。作为 ARM 自家的加速库，CPU 端基于 NEON 指令集做了许多高性能的接口，包括许多常用的图像处理函数、矩阵运算函数、神经网络操作函数等，如下图为 [ComputeLibrary/arm_compute/runtime/NEON/NEFunctions.h](https://github.com/ARM-software/ComputeLibrary/blob/master/arm_compute/runtime/NEON/NEFunctions.h) 文件所提供的函数一览，位操作、直方图均衡化、矩阵乘法、卷积、池化、BN应有尽有，接口粒度有粗有细。
+
 ```c++
 /* Header regrouping all the NEON functions */
 #include "arm_compute/runtime/NEON/functions/NEAbsoluteDifference.h"
@@ -217,7 +218,9 @@ void add_ints(int * __restrict pa, int * __restrict pb, unsigned int n, int x)
 #include "arm_compute/runtime/NEON/functions/NEGEMMTranspose1xW.h"
 ......
 ```
+
 &emsp;&emsp;使用 ARM-Compute Library 进行推断网络的搭建很方便，如下代码构建了一个 conv1: 3x3 -> BatchNorm -> relu 的小网络。在 LG NEXUS 5 平台上，这个网络进行一次推断的时间为8ms，而使用 Caffe2 进行推断的时间为4.8ms。由于 ARM-Compute Library 现在还处于开发完善阶段，很多操作如 MobileNets 中使用的 Depthwise Seperable Convolution（Group Convolution） 还没有得到支持。
+
 ```c++
 #include "arm_compute/runtime/NEON/NEFunctions.h"
 #include "arm_compute/core/Types.h"
@@ -409,7 +412,7 @@ net.load_param_bin("alexnet.param.bin");
 net.load_model("alexnet.bin");
 ```
 
-&emsp;&emsp;NCNN 的推断过程很方便，在 [ncnn/examples/squeezenet.cpp](https://github.com/Tencent/ncnn/blob/master/examples/squeezenet.cpp) 下有例程，核心操作如下代码所示。相比 ACL、NNPACK 等网络操作库，使用 NCNN 不同再重新定义推断的网络，这提高了 Caffe 所导出模型的通用性，在对模型进行修改后不用推断的代码进行修改。
+&emsp;&emsp;NCNN 的推断过程很方便，在 [ncnn/examples/squeezenet.cpp](https://github.com/Tencent/ncnn/blob/master/examples/squeezenet.cpp) 下有例程，核心操作如下代码所示。相比 ACL、NNPACK 等网络操作库，使用 NCNN 不同再重新定义推断的网络，这提高了 Caffe 所导出模型的通用性，在对模型进行修改后不用对推断的代码进行修改。
 
 ```c++
 static int detect_squeezenet(const cv::Mat& bgr, std::vector<float>& cls_scores)
@@ -445,7 +448,7 @@ static int detect_squeezenet(const cv::Mat& bgr, std::vector<float>& cls_scores)
 <br>
 &emsp;&emsp;__TVM__[[18]](https://github.com/dmlc/tvm)——TVM 提供了一个 Tensor 的中间描述层，围绕着这个中间描述层，TVM 提供了操作 Tensor 的计算接口，并能向下生成各个平台的运行代码，从而向上提供给各类深度学习框架使用。TVM 的工作流程分为如下几个步骤：1. 描述 Tensor 和计算规则；2. 定义计算规则的运算方式；3. 编译出所需平台的运行代码；4. 集成生成函数。
 
-&emsp;&emsp;TVM 使用类似于 TensorFlow 的计算图模型来定义计算规则，如下代码所示定义了 Tensor A，B，C 进行向量加的运算规则，其使用 lamda 表达式来描述 Tensor 中各个元素之间的计算关系。在此阶段不会有任何具体的运算发生：
+&emsp;&emsp;TVM 使用类似于 TensorFlow 的计算图模型来定义计算规则，如下代码所示定义了 Tensor A，B，C 进行向量加的计算规则，其使用 lamda 表达式来描述 Tensor 中各个元素之间的计算关系。在此阶段不会有任何具体的运算发生：
 
 ```python
 n = tvm.var("n")
@@ -476,7 +479,7 @@ bx, tx = s[C].split(C.op.axis[0], factor=64)
 # }
 ```
 
-&emsp;&emsp;当定义完 schedule 后，就可以对特定计算平台进行绑定，编译出所需的代码，如下代码将 schedule 所返回的两个迭代子与 NVIDIA GPU 的 CUDA 计算模型进行绑定，`bx` 为 `s` 的第一层迭代子，其对应 CUDA 中的线程块（BLOCK），在上述配置下，将有 `ceil(n / 64)` 个线程块运行在 GPU 上；`tx` 为 `s` 的第二层迭代子，每次迭代将对一个 `C` 的元素进行计算，在 GPU 上每次迭代将由一个线程（thread）来负责计算，即每个线程块中将配置 64 个线程。绑定完成后，我们可以调用 `build` 函数生成对应的 TVM 函数，`build` 函数会接收 `schedule`、输入输出的 tensor、目标语言、目标 host等作为参数，生成一个指定语言的函数接口（默认为 Python）。此处生成的 `fadd_cuda` 是 CUDA 核函数的一个 warpper，使用它便可将运算在 NVIDIA GPU 上执行。
+&emsp;&emsp;当定义完 schedule 后，就可以对特定计算平台进行绑定，编译出所需的代码，如下代码将 schedule 所返回的两个迭代子与 NVIDIA GPU 的 CUDA 计算模型进行绑定，`bx` 为 `s` 的第一层迭代子，其对应 CUDA 中的线程块（BLOCK），在上述配置下，将有 `ceil(n / 64)` 个线程块运行在 GPU 上；`tx` 为 `s` 的第二层迭代子，每次迭代将对一个 `C` 的元素进行计算，在 GPU 上每次迭代将由一个线程（THREAD）来负责计算，即每个线程块中将配置 64 个线程。绑定完成后，我们可以调用 `build` 函数生成对应的 TVM 函数，`build` 函数会接收 `schedule`、输入输出的 tensor、目标语言、目标 host等作为参数，生成一个指定语言的函数接口（默认为 Python）。此处生成的 `fadd_cuda` 是 CUDA 核函数的一个 warpper，使用它便可将运算在 NVIDIA GPU 上执行。
 
 ```python
 s[C].bind(bx, tvm.thread_axis("blockIdx.x"))
@@ -503,10 +506,12 @@ np.testing.assert_allclose(c.asnumpy(), a.asnumpy() + b.asnumpy())
 // -----CUDA code-----
 extern "C" __global__ void myadd__kernel0(float* __restrict__ C, float* __restrict__ A, float* __restrict__ B, int n) {
   if (((int)blockIdx.x) < ((n + -127) / 64)) {
-    C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
+    C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = 
+        (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
   } else {
     if ((((int)blockIdx.x) * 64) < (n - ((int)threadIdx.x))) {
-      C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
+      C[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] = 
+        (A[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))] + B[((((int)blockIdx.x) * 64) + ((int)threadIdx.x))]);
     }
   }
 }
