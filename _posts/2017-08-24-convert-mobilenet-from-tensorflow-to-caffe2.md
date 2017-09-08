@@ -20,8 +20,6 @@ lhcheung1991@gmail.com
 3. 给出模型转换器的效果示例和 MobileNets 在移动端设备上基于 TensorFlow 和 Caffe2 的推断性能比较；
 4. 总结
 
-
-
 <br>
 ## MobileNets
 ---
