@@ -547,6 +547,16 @@ __kernel void myadd__kernel0(__global float* restrict C, __global float* restric
 &emsp;&emsp;正如 TVM 对自身的介绍所说，其希望能搭建深度学习框架与后端计算设备之间的桥梁。这是一项很有雄心，同时也特别繁杂的工作。
 
 <br>
+## 总结
+---
+<br>
+&emsp;&emsp;本文总结了现阶段工业界在移动端设备进行卷积神经网络推断的方法，在软件的每个层次上都总结了具有代表性的解决方案，下图是这些解决方案的一个层次结构图。由于深度学习的训练阶段所采用的技术方案实际上已经被 NVIDIA 所垄断，所以我们给出了 NVIDIA 提供的技术栈作为横向的比较对象。
+
+{:refdef: style="text-align: center;"}
+![]({{site.url}}/assets/2017-08-29-deeplearning-inference-benchmark-survey/deeplearing-inference-software.png)
+{:refdef}
+
+<br>
 ## 引用
 ---
 <br>
