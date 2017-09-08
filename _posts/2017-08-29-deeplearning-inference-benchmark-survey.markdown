@@ -7,11 +7,9 @@ tags: deep-learning inference
 {:refdef: style="text-align: center;"}
 Linghan Cheung
 {:refdef}
-
 {:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
 {:refdef}
-<br>
 ## 摘要
 ---
 <br>
