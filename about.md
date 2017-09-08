@@ -6,4 +6,4 @@ permalink: /about/
 
 Linghan Cheung.
 
-Deep Learning | GPU Programming | Computer Vision
+Deep Learning \| GPU Programming \| Computer Vision
