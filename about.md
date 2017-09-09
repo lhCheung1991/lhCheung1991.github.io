@@ -4,6 +4,6 @@ title: About
 permalink: /about/
 ---
 
-Linghan Cheung.
+Linghan Cheung
 
 Deep Learning \| GPU Programming \| Computer Vision
