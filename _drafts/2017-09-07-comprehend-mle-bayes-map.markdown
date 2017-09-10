@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "理解最大似然估计与最大后验估计"
+title: "理解最大似然估计、贝叶斯估计与最大后验估计"
 categories: blogs
 tags: machine-learning 
 ---
