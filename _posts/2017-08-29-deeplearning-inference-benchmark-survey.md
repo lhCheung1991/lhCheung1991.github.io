@@ -362,6 +362,7 @@ int main(int argc, const char **argv)
 | OverFeat:conv4 |  927 ms            | 256 ms      | 272 ms        | **173** ms               |
 | OverFeat:conv5 | 1832 ms            | 466 ms      | 524 ms        | **315** ms               |
 
+
 &emsp;&emsp;NNPACK 主要支持下列的神经网络操作：
 
 - Convolutional layer
