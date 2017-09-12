@@ -343,7 +343,6 @@ int main(int argc, const char **argv)
 <br>
 &emsp;&emsp;__NNPACK__[[14]](https://github.com/Maratyszcza/NNPACK)——NNPACK 由 facebook 开发，是一个加速神经网络推断计算的加速包，NNPACK可以在多核 CPU 平台上提高卷积层计算性能。NNPACK采用的快速卷积算法基于 Fourier transform 算法和 Winograd transform 算法。下表是 NNPACK 在官网上展出的跟 caffe 的性能比较[[14]](https://github.com/Maratyszcza/NNPACK)，由表可以看出，在常见网络结构的卷积操作中，NNPACK 都有一个很大算力提升（Forward propagation performance on Intel Core i7 6700K vs BVLC Caffe master branch as of March 24, 2016）。NNPACK 对 Fast Fourier transform，Winograd transform，Matrix-matrix multiplication(GEMM)，Matrix-vector multiplication (GEMV)，Max-pooling 做了特别的优化。NNPACK 已经被许多深度学习框架用于底层加速，包括 facebook 自家的 Caffe2。
 
-```shell
 | Library        | Caffe              | NNPACK      | NNPACK        | NNPACK                   |
 | -------------- | ------------------ | ----------- | ------------- | ------------------------ |
 | **Algorithm**  | **im2col + sgemm** | **FFT-8x8** | **FFT-16x16** | **Winograd F(6x6, 3x3)** |
@@ -362,7 +361,7 @@ int main(int argc, const char **argv)
 | OverFeat:conv3 |  250 ms            |  69 ms      |  74 ms        | **54** ms                |
 | OverFeat:conv4 |  927 ms            | 256 ms      | 272 ms        | **173** ms               |
 | OverFeat:conv5 | 1832 ms            | 466 ms      | 524 ms        | **315** ms               |
-```
+
 &emsp;&emsp;NNPACK 主要支持下列的神经网络操作：
 
 - Convolutional layer

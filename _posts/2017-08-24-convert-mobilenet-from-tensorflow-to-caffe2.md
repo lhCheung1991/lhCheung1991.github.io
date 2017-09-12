@@ -403,7 +403,7 @@ print results
 
 |            | 三星 NOTE 3 | LG NEXUS 5 | 魅族 PRO 4 | Smartisan Nut |
 | ---------- | --------- | ---------- | -------- | ------------- |
-| Caffe2     | ---       | 70ms       | ---      | 150ms         |
+| Caffe2     | ---       | 70ms       | 110ms      | 150ms         |
 | TensorFlow | 150ms     | 160ms      | 250ms    |               |
 
 
