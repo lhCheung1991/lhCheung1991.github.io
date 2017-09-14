@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "深度学习的推断计算综述"
+title: "深度学习在 ARM-CPU 上的推断计算综述"
 categories: blogs
 tags: deep-learning inference 
 ---
