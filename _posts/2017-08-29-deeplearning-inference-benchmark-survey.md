@@ -10,6 +10,9 @@ Linghan Cheung
 {:refdef: style="text-align: center;"}
 lhcheung1991@gmail.com
 {:refdef}
+{:refdef: style="text-align: center;"}
+(请在文章底部留下宝贵的评论和建议, [Gitment](https://github.com/imsun/gitment)会将留言以issue形式完整保存方便后续查阅)
+{:refdef}
 ## 摘要
 ---
 <br>
