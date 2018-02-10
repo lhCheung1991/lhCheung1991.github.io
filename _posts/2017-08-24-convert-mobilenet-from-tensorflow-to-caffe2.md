@@ -415,6 +415,12 @@ print results
 <br>
 &emsp;&emsp;本文 review 了 MobileNets 的相关背景知识，实现 Caffe2 平台上 MobileNets 的搭建，总结了将 TensorFlow 的 MobileNets 导出模型转换成 Caffe2 的方法，并给出数值精确度实验结果和 MobileNets 在两个平台上的推断性能对比结果。下一步工作将围绕提高模型转换器的通用性展开，使之支持更多主流模型的转换功能。
 
+<br>
+## 源码
+---
+&emsp;&emsp;项目源码请移步 [https://github.com/lhCheung1991/deeplearning-model-convertor](https://github.com/lhCheung1991/deeplearning-model-convertor)
+<br>
+
 
 <br>
 ## 引用
